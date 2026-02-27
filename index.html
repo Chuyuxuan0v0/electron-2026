@@ -569,6 +569,10 @@
             document.getElementById('currentTime').textContent = data.formatted;
         });
 
+        // 展示关于
+        ipcRenderer.on('show-about', () => {
+            alert('这是一个 Electron 应用，用于演示 IPC 通信。');
+        });
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             addLog('info', '渲染进程已加载');
