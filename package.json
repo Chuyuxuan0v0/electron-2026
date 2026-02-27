@@ -1,0 +1,16 @@
+{
+  "name": "electron-learning",
+  "version": "1.0.0",
+  "description": "Electron 学习项目",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "keywords": ["electron", "learning"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
