@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的第一个 Electron 应用</title>
+    <title>Electron IPC 通信演示</title>
     <style>
         * {
             margin: 0;
@@ -13,174 +13,588 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
             padding: 20px;
         }
 
-        .container {
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.1);
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        .header-left h1 {
+            font-size: 2rem;
+            background: linear-gradient(45deg, #00dbde, #fc00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
         }
 
-        .subtitle {
+        .header-left .subtitle {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .window-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.2rem;
-            opacity: 0.9;
+            transition: all 0.3s;
+        }
+
+        .minimize-btn { background: #ffb74d; }
+        .maximize-btn { background: #4caf50; }
+        .close-btn { background: #f44336; }
+        .reload-btn { background: #2196f3; }
+
+        .window-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
             margin-bottom: 30px;
         }
 
-        .info-card {
-            background: rgba(255, 255, 255, 0.15);
+        .card {
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 25px;
-            margin: 20px 0;
-            text-align: left;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .info-card h3 {
-            margin-bottom: 15px;
-            color: #ffd700;
-        }
-
-        .info-card ul {
-            list-style: none;
-            padding-left: 20px;
-        }
-
-        .info-card li {
-            margin: 10px 0;
-            padding-left: 10px;
-            position: relative;
-        }
-
-        .info-card li:before {
-            content: "✓";
-            position: absolute;
-            left: -15px;
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-        .stats {
+        .card h2 {
+            margin-bottom: 20px;
+            color: #64b5f6;
             display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
+            align-items: center;
+            gap: 10px;
         }
 
-        .stat-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+        .card h2 i {
+            font-size: 1.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
             border-radius: 10px;
-            min-width: 150px;
+            border-left: 4px solid #00dbde;
         }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #ffd700;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-
-        button {
-            background: linear-gradient(45deg, #FF416C, #FF4B2B);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            margin-top: 30px;
-            transition: transform 0.3s, box-shadow 0.3s;
-            font-weight: bold;
-        }
-
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(255, 65, 108, 0.3);
-        }
-
-        footer {
-            margin-top: 40px;
+        .info-label {
+            font-size: 0.8rem;
             opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #00dbde;
+            word-break: break-all;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00dbde, #fc00ff);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e6e6e6;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-explorer {
+            margin-top: 20px;
+        }
+
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .file-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-icon {
+            font-size: 1.2rem;
+        }
+
+        .file-name {
+            flex: 1;
+        }
+
+        .file-type {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .log-container {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .log-list {
+            height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 0.9rem;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .log-time {
+            color: #00dbde;
+            margin-right: 10px;
+        }
+
+        .log-info { color: #4caf50; }
+        .log-warning { color: #ffb74d; }
+        .log-error { color: #f44336; }
+
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .time-display {
+            color: #00dbde;
+            font-weight: bold;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            opacity: 0.7;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎉 欢迎使用 Electron!</h1>
-        <p class="subtitle">你已成功创建第一个跨平台桌面应用</p>
-
-        <div class="info-card">
-            <h3>📚 学习要点</h3>
-            <ul>
-                <li>主进程 (Main Process) - 使用 Node.js API</li>
-                <li>渲染进程 (Renderer Process) - 显示 Web 内容</li>
-                <li>进程间通信 (IPC) - 主进程和渲染进程通信</li>
-                <li>原生 API 访问 - 文件系统、系统托盘、菜单等</li>
-            </ul>
+    <div class="app-header">
+        <div class="header-left">
+            <h1>🔌 Electron IPC 通信演示</h1>
+            <div class="subtitle">主进程 ↔ 渲染进程实时通信</div>
         </div>
-
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-value" id="nodeVersion">加载中...</div>
-                <div class="stat-label">Node.js 版本</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="electronVersion">加载中...</div>
-                <div class="stat-label">Electron 版本</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="platform">加载中...</div>
-                <div class="stat-label">操作系统</div>
-            </div>
+        <div class="window-controls">
+            <button class="window-btn minimize-btn" onclick="sendAppAction('minimize')">➖</button>
+            <button class="window-btn maximize-btn" onclick="sendAppAction('maximize')">⛶</button>
+            <button class="window-btn reload-btn" onclick="sendAppAction('reload')">↻</button>
+            <button class="window-btn close-btn" onclick="sendAppAction('close')">✕</button>
         </div>
-
-        <button onclick="showMessage()">点击我试试！</button>
     </div>
 
-    <footer>
-        使用 Electron 构建 | 学习进度：第 1 课
-    </footer>
+    <div class="dashboard">
+        <div class="card">
+            <h2><i>📊</i> 系统信息</h2>
+            <div class="info-grid" id="systemInfo">
+                <div class="info-item">
+                    <div class="info-label">操作系统</div>
+                    <div class="info-value loading">加载中...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">系统架构</div>
+                    <div class="info-value loading">加载中...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Node.js 版本</div>
+                    <div class="info-value loading">加载中...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Electron 版本</div>
+                    <div class="info-value loading">加载中...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">内存使用</div>
+                    <div class="info-value loading">加载中...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">进程 ID</div>
+                    <div class="info-value loading">加载中...</div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="getSystemInfo()">
+                    <i>🔄</i> 刷新系统信息
+                </button>
+                <button class="btn btn-secondary" onclick="showMemoryUsage()">
+                    <i>💾</i> 查看内存详情
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i>📁</i> 文件操作</h2>
+            <div class="info-item">
+                <div class="info-label">当前工作目录</div>
+                <div class="info-value" id="currentDir">加载中...</div>
+            </div>
+
+            <div class="file-explorer">
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="listCurrentDirectory()">
+                        <i>📂</i> 列出当前目录
+                    </button>
+                    <button class="btn btn-secondary" onclick="readPackageJson()">
+                        <i>📄</i> 读取 package.json
+                    </button>
+                </div>
+                <div class="file-list" id="fileList">
+                    <div class="file-item">
+                        <div class="file-name loading">点击上方按钮加载文件列表</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="log-container">
+        <div class="log-header">
+            <h2><i>📝</i> 通信日志</h2>
+            <button class="btn btn-secondary" onclick="clearLogs()">
+                <i>🗑️</i> 清空日志
+            </button>
+        </div>
+        <div class="log-list" id="logList">
+            <div class="log-entry">
+                <span class="log-time">[系统]</span>
+                <span class="log-info">IPC 通信演示已启动</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="connection-status">
+            <div class="status-dot"></div>
+            <span>IPC 连接正常</span>
+        </div>
+        <div class="time-display" id="currentTime">--:--:--</div>
+        <div>消息计数: <span id="messageCount">0</span></div>
+    </div>
 
     <script>
-        // 在渲染进程中可以直接使用 Node.js API
-        document.getElementById('nodeVersion').textContent = process.versions.node;
-        document.getElementById('electronVersion').textContent = process.versions.electron;
-        document.getElementById('platform').textContent = process.platform;
+        // 导入 Electron 的 IPC 模块
+        const { ipcRenderer } = require('electron');
 
-        function showMessage() {
-            alert('🎯 太棒了！你已经掌握了 Electron 的基础！\n\n接下来我们将学习进程间通信和更多高级功能。');
+        let messageCount = 0;
+        const logs = [];
+
+        // 添加日志函数
+        function addLog(type, message) {
+            const time = new Date().toLocaleTimeString('zh-CN');
+            const logEntry = {
+                time,
+                type,
+                message,
+                id: Date.now()
+            };
+
+            logs.push(logEntry);
+
+            const logList = document.getElementById('logList');
+            const logElement = document.createElement('div');
+            logElement.className = 'log-entry';
+            logElement.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-${type}">${message}</span>
+            `;
+
+            logList.appendChild(logElement);
+            logList.scrollTop = logList.scrollHeight;
+
+            // 更新消息计数
+            messageCount++;
+            document.getElementById('messageCount').textContent = messageCount;
         }
 
-        // 控制台输出一些信息
-        console.log('🎯 渲染进程已加载');
-        console.log('📦 Node.js 版本:', process.versions.node);
-        console.log('⚡ Electron 版本:', process.versions.electron);
-        console.log('💻 操作系统:', process.platform);
+        // 清空日志
+        function clearLogs() {
+            document.getElementById('logList').innerHTML = '';
+            logs.length = 0;
+            addLog('info', '日志已清空');
+        }
+
+        // 发送应用操作
+        function sendAppAction(action) {
+            ipcRenderer.send('app-action', action);
+            addLog('info', `发送应用操作: ${action}`);
+        }
+
+        // 获取系统信息
+        async function getSystemInfo() {
+            addLog('info', '请求系统信息...');
+            try {
+                const info = await ipcRenderer.invoke('get-system-info');
+
+                // 更新系统信息显示
+                document.querySelectorAll('#systemInfo .info-value').forEach(el => {
+                    el.classList.remove('loading');
+                });
+
+                document.getElementById('systemInfo').innerHTML = `
+                    <div class="info-item">
+                        <div class="info-label">操作系统</div>
+                        <div class="info-value">${info.platform}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">系统架构</div>
+                        <div class="info-value">${info.arch}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Node.js 版本</div>
+                        <div class="info-value">${info.nodeVersion}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Electron 版本</div>
+                        <div class="info-value">${info.electronVersion}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">内存使用</div>
+                        <div class="info-value">${Math.round(info.memoryUsage.heapUsed / 1024 / 1024)} MB</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">进程 ID</div>
+                        <div class="info-value">${info.pid}</div>
+                    </div>
+                `;
+
+                // 更新当前目录
+                document.getElementById('currentDir').textContent = info.cwd;
+                document.getElementById('currentDir').classList.remove('loading');
+
+                addLog('info', '系统信息获取成功');
+            } catch (error) {
+                addLog('error', `获取系统信息失败: ${error.message}`);
+            }
+        }
+
+        // 显示内存使用详情
+        function showMemoryUsage() {
+            ipcRenderer.invoke('get-system-info').then(info => {
+                const memory = info.memoryUsage;
+                alert(`内存使用详情：
+                RSS: ${Math.round(memory.rss / 1024 / 1024)} MB
+                堆总计: ${Math.round(memory.heapTotal / 1024 / 1024)} MB
+                堆使用: ${Math.round(memory.heapUsed / 1024 / 1024)} MB
+                外部: ${Math.round(memory.external / 1024 / 1024)} MB
+                数组缓冲区: ${Math.round(memory.arrayBuffers / 1024 / 1024)} MB`);
+                addLog('info', '显示内存使用详情');
+            });
+        }
+
+        // 列出当前目录
+        async function listCurrentDirectory() {
+            const cwd = document.getElementById('currentDir').textContent;
+            if (cwd === '加载中...') {
+                addLog('warning', '请先获取系统信息');
+                return;
+            }
+
+            addLog('info', `列出目录: ${cwd}`);
+            try {
+                const result = await ipcRenderer.invoke('list-directory', cwd);
+
+                if (result.success) {
+                    const fileList = document.getElementById('fileList');
+                    fileList.innerHTML = '';
+
+                    if (result.items.length === 0) {
+                        fileList.innerHTML = '<div class="file-item">目录为空</div>';
+                    } else {
+                        result.items.forEach(item => {
+                            const fileItem = document.createElement('div');
+                            fileItem.className = 'file-item';
+                            fileItem.innerHTML = `
+                                <div class="file-icon">${item.isDirectory ? '📁' : '📄'}</div>
+                                <div class="file-name">${item.name}</div>
+                                <div class="file-type">${item.isDirectory ? '目录' : '文件'}</div>
+                            `;
+                            fileList.appendChild(fileItem);
+                        });
+                    }
+
+                    addLog('info', `列出 ${result.items.length} 个项目`);
+                } else {
+                    addLog('error', `列出目录失败: ${result.error}`);
+                }
+            } catch (error) {
+                addLog('error', `列出目录异常: ${error.message}`);
+            }
+        }
+
+        // 读取 package.json
+        async function readPackageJson() {
+            const cwd = document.getElementById('currentDir').textContent;
+            const filePath = require('path').join(cwd, 'package.json');
+
+            addLog('info', `读取文件: ${filePath}`);
+            try {
+                const result = await ipcRenderer.invoke('read-file', filePath);
+
+                if (result.success) {
+                    const packageJson = JSON.parse(result.content);
+                    alert(`package.json 内容：
+                    名称: ${packageJson.name}
+                    版本: ${packageJson.version}
+                    描述: ${packageJson.description}
+                    主文件: ${packageJson.main}`);
+                    addLog('info', 'package.json 读取成功');
+                } else {
+                    addLog('error', `读取文件失败: ${result.error}`);
+                }
+            } catch (error) {
+                addLog('error', `读取文件异常: ${error.message}`);
+            }
+        }
+
+        // 监听主进程发送的消息
+        ipcRenderer.on('time-update', (event, data) => {
+            document.getElementById('currentTime').textContent = data.formatted;
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('info', '渲染进程已加载');
+            addLog('info', '开始初始化 IPC 通信...');
+
+            // 自动获取系统信息
+            setTimeout(() => {
+                getSystemInfo();
+            }, 1000);
+
+            // 添加一些示例日志
+            setTimeout(() => {
+                addLog('info', 'IPC 通信初始化完成');
+                addLog('info', '可以开始测试各种通信功能');
+            }, 2000);
+        });
+
+        // 控制台输出
+        console.log('🔌 IPC 通信演示已启动');
+        console.log('📡 可用的 IPC 通道:', {
+            'get-system-info': '获取系统信息',
+            'read-file': '读取文件',
+            'list-directory': '列出目录',
+            'app-action': '应用操作',
+            'time-update': '时间更新（主进程主动发送）'
+        });
     </script>
 </body>
 </html>
