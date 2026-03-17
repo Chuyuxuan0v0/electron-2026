@@ -1,0 +1,6 @@
+{
+  "name": "electron-2026",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Electron 8 节课学习项目（pnpm workspace 管理）"
+}

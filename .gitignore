@@ -1,0 +1,13 @@
+# 依赖目录（pnpm workspace 各课程）
+**/node_modules
+
+# 构建产物
+**/out
+**/dist
+
+# pnpm 调试日志
+pnpm-debug.log*
+
+# 系统文件
+.DS_Store
+Thumbs.db

@@ -27,6 +27,7 @@
 
 ## 当前进度（请每次对话后更新）
 
-- **当前学到第几课**：尚未开始（框架已搭好）
-- **下次可从哪课开始**：第 1 课
-- **其他备注**：无
+- **当前学到第几课**：第 1 课已完成（Electron + Vite + Vue3 项目已跑通）
+- **下次可从哪课开始**：第 2 课（IPC 通信：`ipcMain` / `ipcRenderer` + preload + contextBridge）
+- **依赖管理约定**：使用 **pnpm workspace**（根目录 `pnpm-workspace.yaml`，packages 为 `lesson-*`），尽量只在根目录执行 `pnpm install` 以复用依赖、节省磁盘空间
+- **第 1 课运行方式**：在 `lesson-01-electron-intro/` 下运行 `pnpm dev`（如之前用 npm 安装过，先删 `node_modules` 与 `package-lock.json` 再在根目录 `pnpm install`）
