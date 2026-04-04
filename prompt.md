@@ -27,7 +27,7 @@
 
 ## 当前进度（请每次对话后更新）
 
-- **当前学到第几课**：第 2 课已完成（掌握 IPC 双向通信：`invoke/handle`，单向推送：`send/on`）
-- **下次可从哪课开始**：第 3 课（多窗口管理与生命周期）
+- **当前学到第几课**：第 3 课代码已就绪（多窗口：`settings.html` + `parent/modal`；生命周期；关闭前 `dialog`）
+- **下次可从哪课开始**：第 3 课验收与笔记深化（或第 4 课「原生能力与系统集成」）
 - **依赖管理约定**：使用 **pnpm workspace**（根目录 `pnpm-workspace.yaml`，packages 为 `lesson-*`），尽量只在根目录执行 `pnpm install` 以复用依赖、节省磁盘空间
 - **第 1 课运行方式**：在 `lesson-01-electron-intro/` 下运行 `pnpm dev`（如之前用 npm 安装过，先删 `node_modules` 与 `package-lock.json` 再在根目录 `pnpm install`）
